@@ -1,0 +1,7 @@
+#!/Users/k0k00rk/Documents/Packages/incubator-superset/superset_0.29.0rc7/bin/python3.7
+# EASY-INSTALL-DEV-SCRIPT: 'superset==0.29.0rc7','superset'
+__requires__ = 'superset==0.29.0rc7'
+__import__('pkg_resources').require('superset==0.29.0rc7')
+__file__ = '/Users/k0k00rk/Documents/Packages/incubator-superset/superset/bin/superset'
+with open(__file__) as f:
+    exec(compile(f.read(), __file__, 'exec'))

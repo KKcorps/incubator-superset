@@ -68,6 +68,7 @@ export function runAnnotationQuery(annotation, timeout = 60, formData = null, ke
   return function (dispatch, getState) {
     const sliceKey = key || Object.keys(getState().charts)[0];
     // make a copy of formData, not modifying original formData
+
     const fd = { ...(formData || getState().charts[sliceKey].latestQueryFormData) };
 
     if (!requiresQuery(annotation.sourceType)) {
@@ -77,6 +78,7 @@ export function runAnnotationQuery(annotation, timeout = 60, formData = null, ke
     const granularity = fd.time_grain_sqla || fd.granularity;
     fd.time_grain_sqla = granularity;
     fd.granularity = granularity;
+
     const overridesKeys = Object.keys(annotation.overrides);
     if (overridesKeys.includes('since') || overridesKeys.includes('until')) {
       annotation.overrides = {
@@ -84,13 +86,19 @@ export function runAnnotationQuery(annotation, timeout = 60, formData = null, ke
         time_range: null,
       };
     }
-    const sliceFormData = Object.keys(annotation.overrides).reduce(
+
+    const has_extra_filters = (formData == null) ? false  : formData.extra_filters && formData.extra_filters.length > 0;
+
+    let sliceFormData = Object.keys(annotation.overrides).reduce(
       (d, k) => ({
         ...d,
-        [k]: annotation.overrides[k] || fd[k],
+        [k] : annotation.overrides[k] || fd[k],
       }),
       {},
     );
+
+    sliceFormData['extra_filters'] = has_extra_filters ? fd['extra_filters'] : undefined;
+
     const isNative = annotation.sourceType === ANNOTATION_SOURCE_TYPES.NATIVE;
     const url = getAnnotationJsonUrl(annotation.value, sliceFormData, isNative);
     const controller = new AbortController();
@@ -98,8 +106,9 @@ export function runAnnotationQuery(annotation, timeout = 60, formData = null, ke
 
     dispatch(annotationQueryStarted(annotation, controller, sliceKey));
 
+
     return SupersetClient.get({
-      url,
+      url : url,
       signal,
       timeout: timeout * 1000,
     })
@@ -146,6 +155,10 @@ export function runQuery(formData, force = false, timeout = 60, key) {
       endpointType: 'json',
       force,
     });
+
+    console.log("RUN QUERY - FORM DATA");
+    console.log(formData);
+
     const logStart = Logger.getTimestamp();
     const controller = new AbortController();
     const { signal } = controller;
